@@ -1,0 +1,15 @@
+#!/bin/bash
+
+declare -A pomo_options
+pomo_options["work"]="25"
+pomo_options["break"]="5"
+
+if [ -n "$1" -a -n "${pomo_options["$1"]}" ]; then
+	val=$1
+	echo $val | lolcat
+   	if [ $1 = "work" ]; then
+		timer ${pomo_options["$val"]}m && notify-send -i ~/Pictures/timer-icon.svg "Work session done! You deserve a break, Aazib."
+	else
+		timer ${pomo_options["$val"]}m && notify-send -i ~/Pictures/timer-icon.svg "Break session done."
+	fi
+fi
