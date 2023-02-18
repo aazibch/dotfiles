@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 #
 # Pomodoro Timer
 #
@@ -10,7 +10,7 @@ declare -A pomo_options=(
 	["long-break"]=25
 )
 
-sessions_num_file=~/.config/pomodoro/pomodoro-count
+sessions_num_file="$HOME/.config/pomodoro/pomodoro-count"
 work_message="Work session finished. Take a break!"
 break_message="Break session finished."
 
@@ -25,6 +25,7 @@ function reset_sessions_count() {
 }
 
 if ! [ -f "$sessions_num_file" ]; then
+	mkdir -p "$HOME/.config/pomodoro/"
 	touch "$sessions_num_file"
 	echo 0 > "$sessions_num_file"
 fi
