@@ -1,15 +1,58 @@
 #!/bin/bash
+#
+# Pomodoro Timer
+#
+# You can modify the pomo_options values to match your preferences.
 
-declare -A pomo_options
-pomo_options["work"]="25"
-pomo_options["break"]="5"
+declare -A pomo_options=(
+	["work"]=25
+	["break"]=5
+	["long-break"]=25
+)
+
+sessions_num_file=~/.config/pomodoro/pomodoro-count
+work_message="Work session finished. Take a break!"
+break_message="Break session finished."
+
+function increment_sessions() {
+    (( ++pomo_sessions ))
+	echo "$pomo_sessions" > "$sessions_num_file"
+}
+
+function reset_sessions_count() {
+    echo 0 > "$sessions_num_file"
+    pomo_sessions=0
+}
+
+if ! [ -f "$sessions_num_file" ]; then
+	touch "$sessions_num_file"
+	echo 0 > "$sessions_num_file"
+fi
+
+pomo_sessions=$(cat $sessions_num_file)
+
+if [ "$pomo_sessions" -ne 0 -a $(( ("$pomo_sessions" + 1) % 4 )) -eq 0 ]; then
+	work_message="Four pomodoros! Take a longer break."
+fi
 
 if [ -n "$1" -a -n "${pomo_options["$1"]}" ]; then
-	val=$1
-	echo $val | lolcat
-   	if [ $1 = "work" ]; then
-		timer ${pomo_options["$val"]}m && notify-send -i ~/Pictures/timer-icon.svg "Work session done! You deserve a break, Aazib."
+	val="$1"
+   	if [ "$val" = "work" ]; then
+		echo "$val | session number $(( pomo_sessions + 1 ))" | lolcat
+		timer ${pomo_options["$val"]}m && notify-send -i ~/Pictures/timer-icon.svg "$work_message"
+		if [ "$?" -eq 0 ] ; then
+			increment_sessions
+			paplay "/usr/share/sounds/gnome/default/alerts/glass.ogg" --volume 32768 
+		fi
 	else
-		timer ${pomo_options["$val"]}m && notify-send -i ~/Pictures/timer-icon.svg "Break session done."
+	    echo $val | lolcat
+		timer ${pomo_options["$val"]}m && notify-send -i ~/Pictures/timer-icon.svg "$break_message"
+		if [ "$?" -eq 0 ] ; then
+			paplay "/usr/share/sounds/gnome/default/alerts/glass.ogg" --volume 32768 
+		fi
 	fi
+fi
+
+if [ "$1" = "reset" ]; then
+    reset_sessions_count
 fi
